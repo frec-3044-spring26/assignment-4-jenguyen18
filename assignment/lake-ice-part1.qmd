@@ -65,7 +65,7 @@ sunapee |>
   geom_line() +
   labs(title = "Lake Sunapee Ice Off",
        x = "Year",
-       y = "Ice Off Day") +
+       y = "Ice Off Doy (Day of Year)") +
   theme_classic()
 ```
 
@@ -78,7 +78,7 @@ We want to model how the ice-off date changes over time. Our approach in this mo
 What do you expect the sign (plus, minus, or no change) to be for the slope of the relationship? Why?
 
 **Answer 2:**
-I expect the sign to be 
+I expect the sign to be negative because as the year increased the amount of ice off days from 70-90's increases.
 
 Use the `lm` function to predict `ice_off_doy` as a function (`~`) of the year for the data.frame called `sunapee`. You can learn more about the `lm` function [here](https://www.datacamp.com/tutorial/linear-regression-R)
 
@@ -91,7 +91,7 @@ fit = lm(year~ice_off_doy , data = sunapee)
 Then, use the function `summary` to explore the result of the `lm` function.
 
 ```{r}
-
+summary(fit)
 ```
 
 The results of your linear model are in an object named `fit`, so you can find the regression coefficients at `fit$coefficients[1]` (the intercept) and `fit$coefficients[2]` (the slope). Confirm that `fit$coefficients[1]` and `fit$coefficients[2]` match the values expected from the summary command you ran above.
@@ -106,7 +106,7 @@ fit$coefficients[2]
 What is the direction of the slope? How does this match your expectations from Question 2?
 
 **Answer 3:**
-
+The direction was negative, which matched my expectations.
 # Is our model any good?
 
 ## R2
@@ -118,7 +118,7 @@ First, it is important to understand how much variation is explained by the mode
 What is the R2 for the regression? Based on the R2, is `year` and `ice_off_doy` strongly related?
 
 **Answer 4:**
-
+ The R2 is .4457. Year and ice_off_doy are not strongly related.
 ## Residuals normally distributed
 
 Second, it is important that the residuals from our linear model are normally distributed.  The following is a normal distribution that you can visually compare to:
@@ -137,7 +137,7 @@ We will use a histogram to visually assess whether this requirement is met. Firs
 You will use a histogram to examine the residuals. First, the code uses the coefficients to predict the yearly ice-off DOY. Second, calculate the residuals by subtracting the predicted ice-off DOY from the observed DOY.
 
 ```{r}
-sunapee <- sunapee %>% 
+sunapee <- sunapee |>
   mutate(predicted = fit$coefficients[1] + year * fit$coefficients[2], 
          residual = ice_off_doy - predicted) #Observed - Predicted
 ```
@@ -149,7 +149,10 @@ Use the [`add_predictions()`](https://modelr.tidyverse.org/reference/add_predict
 **Answer 5:**
 
 ```{r}
-
+library(modelr)
+sunapee <- sunapee |>
+add_predictions(fit, var = "pred", type = NULL) |>
+add_residuals(fit, var = "resid")
 ```
 
 Now, to visualize the residuals, use `geom_histogram()` to plot them as a histogram. I recommend using a bin width of 10 in the histogram.
@@ -159,9 +162,10 @@ Now, to visualize the residuals, use `geom_histogram()` to plot them as a histog
 Show Histogram and answer the following question: do the residuals meet the assumptions of the linear regression? (are the residuals normally distributed with the distribution centered around zero)?
 
 **Answer 6:**
-
+Yes, the residuals meet the assumptions.
 ```{r}
-
+ggplot(sunapee, aes(x = resid)) +
+  geom_histogram(width = 10)
 ```
 
 
@@ -174,7 +178,7 @@ A slope could appear to be higher or lower than zero, but the uncertainty in the
 Based on the `summary()` above, what is the p-value for the slope?
 
 **Answer 7:**
-
+The p-value was 0.001356.
 ## The slope physically meaningful
 
 A slope value could have a low probability of being 0 (thus we have a strong belief that it is not zero), but the magnitude of change is functionally meaningless in the physical world (i.e., the rate of change is so small that we would not think much of it). This can occur particularly when analyzing large datasets.
