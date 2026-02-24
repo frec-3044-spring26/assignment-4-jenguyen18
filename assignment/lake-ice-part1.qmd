@@ -26,13 +26,13 @@ Now use `read_excel()` to read in `file_name`. Remember that Excel files can hav
 
 ```{r}
 library(readxl)
-data <- read_excel(file_name, sheet = "data")
+ice_data <- read_excel(file_name, sheet = "data")
 ```
 
 Now, look at a preview of the data using the `head()` function. The `doy` in `ice_off_doy` stands for "day of the year" and is the day within the year where ice off occurred (January 1 = doy 1).  `did_not_freeze` is a column where 1 = did not freeze and 0 = did freeze.
 
 ```{r}
-head(data)
+head(ice_data)
 ```
 
 There should be four columns and \~2703 rows.
@@ -43,7 +43,7 @@ We will practice key skills in the module using a focal lake. Use the `filter` f
 
 ```{r}
 library(tidyverse)
-sunapee <- filter(data, lake_name == "Sunapee")
+sunapee <- filter(ice_data, lake_name == "Sunapee")
 ```
 
 You will be using the `sunapee` data for the rest of the module until Question 11
@@ -59,7 +59,7 @@ Be sure that the title, x-axis, and y-axis labels are clearly labeled.
 **Answer 1:**
 
 ```{r}
-sunapee |>
+p <- sunapee |>
   ggplot(aes(x = year, y = ice_off_doy)) +
   geom_point() +
   geom_line() +
@@ -67,6 +67,7 @@ sunapee |>
        x = "Year",
        y = "Ice Off Doy (Day of Year)") +
   theme_classic()
+p
 ```
 
 # How does ice cover change over time at Lake Sunapee?
@@ -85,7 +86,8 @@ Use the `lm` function to predict `ice_off_doy` as a function (`~`) of the year f
 Create an object called `fit` that contains the results of the linear model.
 
 ```{r}
-fit = lm(year~ice_off_doy , data = sunapee)
+
+fit = lm(ice_off_doy ~ year, data = sunapee)
 ```
 
 Then, use the function `summary` to explore the result of the `lm` function.
@@ -118,7 +120,7 @@ First, it is important to understand how much variation is explained by the mode
 What is the R2 for the regression? Based on the R2, is `year` and `ice_off_doy` strongly related?
 
 **Answer 4:**
- The R2 is .4457. Year and ice_off_doy are not strongly related.
+ The R2 is 0.2055. Year and ice_off_doy are not strongly related.
 ## Residuals normally distributed
 
 Second, it is important that the residuals from our linear model are normally distributed.  The following is a normal distribution that you can visually compare to:
@@ -150,9 +152,12 @@ Use the [`add_predictions()`](https://modelr.tidyverse.org/reference/add_predict
 
 ```{r}
 library(modelr)
+
+
 sunapee <- sunapee |>
-add_predictions(fit, var = "pred", type = NULL) |>
-add_residuals(fit, var = "resid")
+add_predictions(fit, var = "pred") 
+#add_residuals(fit, var = "resid")
+
 ```
 
 Now, to visualize the residuals, use `geom_histogram()` to plot them as a histogram. I recommend using a bin width of 10 in the histogram.
@@ -162,7 +167,7 @@ Now, to visualize the residuals, use `geom_histogram()` to plot them as a histog
 Show Histogram and answer the following question: do the residuals meet the assumptions of the linear regression? (are the residuals normally distributed with the distribution centered around zero)?
 
 **Answer 6:**
-Yes, the residuals meet the assumptions.
+Yes, the residuals meet the assumptions since the residuals are normally distrubed and centered around 0.
 ```{r}
 ggplot(sunapee, aes(x = resid)) +
   geom_histogram(width = 10)
@@ -178,16 +183,17 @@ A slope could appear to be higher or lower than zero, but the uncertainty in the
 Based on the `summary()` above, what is the p-value for the slope?
 
 **Answer 7:**
-The p-value was 0.001356.
+The p-value was 2.504e-09.
 ## The slope physically meaningful
 
 A slope value could have a low probability of being 0 (thus we have a strong belief that it is not zero), but the magnitude of change is functionally meaningless in the physical world (i.e., the rate of change is so small that we would not think much of it). This can occur particularly when analyzing large datasets.
 
 **Question 8:**
 
-Based on the slope value, how many more years are needed to pass before the lake has a 1 week change in ice off doy? Do you think this is meaningful? Why?
+Based on the slope value, how many more years are needed to pass before the lake has a 1 week change in ice off doy? Do you think this is meaningful? Why? 
 
 **Answer 8:**
+7/.1060227 = 66.02. It would take 66 years to pass. I think it's meaningful because of the low p-value.
 
 ## Overall model assessment
 
@@ -196,13 +202,17 @@ Based on the slope value, how many more years are needed to pass before the lake
 How comfortable are you proceeding with using this linear model for additional analysis and prediction? Why? (I am not looking for your gut answer, rather I want you to apply concepts taught in this module to justify your answer)
 
 **Answer 9:**
-
+I would be comfortable even though r-sqaured is low, atleast the p-value (< .05) and residuals are what we would want.
 **Question 10:**
 Now plot the data for Lake Sunapee (just like above - year on x-axis vs. ice of doy on y axis) but add the line from your regression results (e.g., fit intercept and slope). You will use the [`geom_abline`](https://ggplot2.tidyverse.org/reference/geom_abline.html). 
 
 **Answer 10:**
 ```{r}
-
+# p + geom_abline(mapping = NULL,
+ # data = NULL, slope = -.1060227, intercept = 318.9486,
+ #               color = "blue",
+  #na.rm = FALSE)
+p + geom_smooth(method = "lm", se = FALSE)
 ```
 
 **Question 11:**
