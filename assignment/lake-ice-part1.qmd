@@ -227,7 +227,7 @@ The goal of this question is to make a forecast of the future ice-off day (with 
 **Answer 11:**
 
 ```{r}
-
+quants <- quantile(fit$residuals)
 ```
 
 # Is the ice-off day of the year changing more quickly in more recent years at Lake Sunapee?
@@ -241,6 +241,35 @@ Use the skills developed above to evaluate the question "Is the ice-off day of y
 **Answer 12:**
 
 Use a mix of code, figures, and text to present your analysis.  If you want to compare slopes, be sure they are on the same plot.
+
+
+```{r}
+library(patchwork)
+sun_early <- sunapee |>
+  filter(year <= 1970)
+sun_late <- sunapee |>
+  filter(year > 1970)
+p1 <- ggplot(sun_early, aes(x = year, y = ice_off_doy)) +
+  geom_point() +
+   labs(title = "Lake Sunapee Ice Off",
+       x = "Year",
+       y = "Ice Off Doy (Day of Year)") +
+  theme_classic()
+p2 <- ggplot(sun_late, aes(x = year, y = ice_off_doy)) +
+  geom_point() + 
+   labs(title = "Lake Sunapee Ice Off",
+       x = "Year",
+       y = "Ice Off Doy (Day of Year)") +
+  theme_classic()
+p1 + p2
+
+fit_early = lm(ice_off_doy ~ year, data = sun_early)
+fit_late = lm(ice_off_doy ~ year, data = sun_late)
+summary(fit_early)
+summary(fit_late)
+#fit_early + geom_abline(slope = -.29271, intercept = 692)
+```
+
 
 # Rendering and committing
 
